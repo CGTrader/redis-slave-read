@@ -47,12 +47,14 @@ class Redis
           @index = rand(@nodes.length)
         end
 
-        def method_missing(method, *args, &block)
-          puts "Missing method: #{method}"
-          if slave_command?(method)
-            slaves.first.send(method, *args, &block)
+        def method_missing(method, *args)
+          if master.respond_to?(method)
+            define_method(method) do |*_args|
+              @master.send(method, *_args)
+            end
+            send(method, *args)
           else
-            master.send(method, *args, &block)
+            super
           end
         end
 
@@ -102,15 +104,15 @@ class Redis
 
         def next_node
           @round_robin_mutex.synchronize do
-            return @master if @locked_node || @nodes.empty?
-
-            @index = (@index + 1) % @nodes.length
-            @nodes[@index]
+            if @locked_node
+              @locked_node
+            elsif @nodes.empty?
+              @master
+            else
+              @index = (@index + 1) % @nodes.length
+              @nodes[@index]
+            end
           end
-        end
-
-        def slave_command?(method)
-          Redis::SlaveRead::Interface::Hiredis::SLAVE_COMMANDS.include?(method.to_s)
         end
       end
     end
