@@ -91,6 +91,14 @@ class Redis
           end
         end
 
+        def with
+          if block_given?
+            yield self
+          else
+            self
+          end
+        end
+
         private
 
         def next_node
