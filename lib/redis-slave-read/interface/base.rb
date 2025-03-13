@@ -58,7 +58,6 @@ class Redis
           end
         end
 
-
         def pipelined(*args, &block)
           @block_exec_mutex.synchronize do
             @locked_node = @master
