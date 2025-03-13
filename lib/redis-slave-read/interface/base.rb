@@ -47,27 +47,14 @@ class Redis
           @index = rand(@nodes.length)
         end
 
-        def method_missing(method, *args, &block)
-          if master.respond_to?(method)
-            if slave_command?(method)
-              define_singleton_method(method) do |*_args, &_block|
-                next_node.send(method, *_args, &_block)
-              end
-            else
-              define_singleton_method(method) do |*_args, &_block|
-                @master.send(method, *_args, &_block)
-              end
-            end
-            send(method, *args, &block)
+        def method_missing(method, *args)
+          puts method
+          puts Redis::SlaveRead::Interface::Hiredis::SLAVE_COMMANDS
+          if slave_command?(method)
+            slaves.first.send(method, *args)
           else
-            super
+            master.send(method, *args)
           end
-        end
-
-        def respond_to_missing?(method_name, include_private = false)
-          master.respond_to?(method_name, include_private) ||
-            slaves.any? { |slave| slave.respond_to?(method_name, include_private) } ||
-            super
         end
 
 
