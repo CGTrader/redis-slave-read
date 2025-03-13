@@ -47,16 +47,28 @@ class Redis
           @index = rand(@nodes.length)
         end
 
-        def method_missing(method, *args)
+        def method_missing(method, *args, &block)
           if master.respond_to?(method)
-            define_method(method) do |*_args|
-              @master.send(method, *_args)
+            define_singleton_method(method) do |*_args, &_block|
+              @master.send(method, *_args, &_block)
             end
-            send(method, *args)
+            send(method, *args, &block)
+          elsif slave.respond_to?(method)
+            define_singleton_method(method) do |*_args, &_block|
+              @slaves.sample.send(method, *_args, &_block)
+            end
+            send(method, *args, &block)
           else
             super
           end
         end
+
+        def respond_to_missing?(method_name, include_private = false)
+          master.respond_to?(method_name, include_private) ||
+            slaves.any? { |slave| slave.respond_to?(method_name, include_private) } ||
+            super
+        end
+
 
         def pipelined(*args, &block)
           @block_exec_mutex.synchronize do
