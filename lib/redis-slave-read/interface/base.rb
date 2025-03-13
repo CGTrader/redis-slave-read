@@ -47,13 +47,12 @@ class Redis
           @index = rand(@nodes.length)
         end
 
-        def method_missing(method, *args)
-          puts method
-          puts Redis::SlaveRead::Interface::Hiredis::SLAVE_COMMANDS
+        def method_missing(method, *args, &block)
+          puts "Missing method: #{method}"
           if slave_command?(method)
-            slaves.first.send(method, *args)
+            slaves.first.send(method, *args, &block)
           else
-            master.send(method, *args)
+            master.send(method, *args, &block)
           end
         end
 
@@ -88,6 +87,14 @@ class Redis
             replies = @master.send(:multi, *args, &block)
             @locked_node = nil
             replies
+          end
+        end
+
+        def with
+          if block_given?
+            yield self
+          else
+            self
           end
         end
 
