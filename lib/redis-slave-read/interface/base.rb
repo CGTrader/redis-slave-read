@@ -49,13 +49,14 @@ class Redis
 
         def method_missing(method, *args, &block)
           if master.respond_to?(method)
-            define_singleton_method(method) do |*_args, &_block|
-              @master.send(method, *_args, &_block)
-            end
-            send(method, *args, &block)
-          elsif slave.respond_to?(method)
-            define_singleton_method(method) do |*_args, &_block|
-              @slaves.sample.send(method, *_args, &_block)
+            if slave_command?(method)
+              define_singleton_method(method) do |*_args, &_block|
+                next_node.send(method, *_args, &_block)
+              end
+            else
+              define_singleton_method(method) do |*_args, &_block|
+                @master.send(method, *_args, &_block)
+              end
             end
             send(method, *args, &block)
           else
@@ -107,15 +108,15 @@ class Redis
 
         def next_node
           @round_robin_mutex.synchronize do
-            if @locked_node
-              @locked_node
-            elsif @nodes.empty?
-              @master
-            else
-              @index = (@index + 1) % @nodes.length
-              @nodes[@index]
-            end
+            return @master if @locked_node || @nodes.empty?
+
+            @index = (@index + 1) % @nodes.length
+            @nodes[@index]
           end
+        end
+
+        def slave_command?(method)
+          Redis::SlaveRead::Interface::Hiredis::SLAVE_COMMANDS.include?(method.to_s)
         end
       end
     end
