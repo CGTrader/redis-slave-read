@@ -9,7 +9,7 @@ class Redis
           persist pexpire pexpireat pfadd pfcount pfmerge ping psetex psubscribe pttl publish pubsub punsubscribe quit randomkey readonly readwrite rename renamenx restore role rpop rpoplpush rpush
           rpushx sadd save scan scard script sdiff sdiffstore select set setbit setex setnx setrange shutdown sinter sinterstore sismember slaveof slowlog smembers smove sort spop srandmember srem
           sscan strlen subscribe sunion sunionstore swapdb sync time touch ttl type unlink unsubscribe unwatch wait watch zadd zcard zcount zincrby zinterstore zlexcount zrange zrangebylex
-          zrangebyscore zrank zrem zremrangebylex zremrangebyrank zremrangebyscore zrevrange zrevrangebylex zrevrangebyscore zrevrank zscan zscore zunionstore
+          zrangebyscore zrank zrem zremrangebylex zremrangebyrank zremrangebyscore zrevrange zrevrangebylex zrevrangebyscore zrevrank zscan zscore zunionstore mapped_mset
         )
 
         SLAVE_COMMANDS = %w(
