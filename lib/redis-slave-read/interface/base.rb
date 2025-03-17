@@ -48,6 +48,8 @@ class Redis
         end
 
         def method_missing(method, *args)
+          puts method
+          puts args
           if master.respond_to?(method)
             define_method(method) do |*_args|
               @master.send(method, *_args)
