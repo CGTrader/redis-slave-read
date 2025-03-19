@@ -29,7 +29,7 @@ Make sure that your slaves are set to be slaved to the master, like `slaveof loc
 
 Now, you can treat your SlaveRead interface as a normal Redis interfaces. Reads are distributed
 among the slaves, and writes are always sent to the master. Writes will be propagated to slaves
-by the master.
+by the master:
 
     $redis.set "foo", "bar"
     $redis.get "foo"
